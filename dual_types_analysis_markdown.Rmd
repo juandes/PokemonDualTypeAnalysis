@@ -1,0 +1,374 @@
+---
+title: "Pokemon dual types"
+author: "Juan De Dios Santos, @jdiossantos"
+output: html_document
+---
+```{r, echo=FALSE}
+library(ggplot2)
+library(RColorBrewer)
+library(tree)
+setwd("~/Development/R/PokemonDualTypeAnalysis")
+load("pokemontypesdf.RData")
+types_matrix <- table(types)
+```
+###This is a work in progress.
+
+##Introduction
+In the world of Pok?mon there are 18 types that are properties of the Pok?mon and their moves. A Pok?mon may have one or two types (dual-type), meaning that there are 324 posible combinations, 18 single-type Pok?mon and 306 dual-types Pok?mon. However in the games, there are no differences between the order of the types in a dual-type Pok?mon, in other words, a Flying/Dragon Pok?mon is treated in the same way a Dragon/Flying Pok?mon is treated.
+
+In this work we will take a look at dual-type Pok?mon. Unlike the games, we will consider the order of the types of a dual-type Pok?mon using the way it is documented in the Pokedex. For example, we will treat a Flying/Dragon Pok?mon such as Noivern and Dragon/Flying Pok?mon like Altaria as having two different types. 
+
+The Pok?mon included in this study are the ones currently available in the National Pokedex, starting with Bulbasaur and ending with Zygarde; a total of 718 Pok?mon. Also, Mega Pok?mon and alternate forms of Pok?mon like Rotom forms, Therian forms are not included.
+
+##Codebook
+Our original dataset consists of two columns called `dataset.Type.1` and `dataset.Type.2`. The first column, `dataset.Type.1` has the primary type of the Pok?mon and the second one, `dataset.Type.2`, the secondary type. If the Pok?mon does not have a secondary type, the corresponding entry in `dataset.Type.2` is `<NA>` (not applicable). The dataset has a total of 718 observations (rows) because we are working with the National Pokedex and you may have noticed, the name of the Pok?mon is not included, the reason behind this is that it is not really needed since we are just interested in the types. Instead, we use the index or the number of the row. For example, row number 4 is a pure Fire type Pok?mon (Charmander).
+
+```{r, echo=FALSE}
+head(types)
+```
+
+##Overview
+The following matrix shows the total of dual-types Pok?mon per each primary type. Each row represents a primary type and the columns the secondary type. An example on how to read it, there are 2 Bug/Electric Pok?mon, 1 Bug/Fighting, 2 Bug/Fire and so on. The -1 entries means that it does not apply, since for example a Bug/Bug Pok?mon would be a pure Bug type, and pure types are out of the score of this analysis.
+
+```{r, echo=FALSE}
+diag(types_matrix) <- -1
+types_table_complete <- as.data.frame(table(types))
+types_table_complete$Freq <- as.numeric(types_table_complete$Freq)
+types_table_frequency_0 <- types_table_complete[which(types_table_complete$Freq == 0),] #Todos los que tienen frequency de 0.
+types_table <- types_table_complete[which(types_table_complete$Freq != 0),] #Todos los que tienen frequency > 0
+types_table <- types_table[order(-types_table$Freq),]
+types_matrix
+```
+
+The next figure, a heat map, shows the same information from the previous table in another way. The Y axis is the primary type and the X axis the secondary one. Regardings the colors, the darker they are, the smaller the frequency is and the lighest the color is, higher the frequency is.
+
+```{r, echo=FALSE}
+color_palette <- colorRampPalette(rev(brewer.pal(6, "Greys")), space="rgb")
+zp1 <- ggplot(as.data.frame(types_matrix),
+              aes(x = dataset.Type.2, y = dataset.Type.1, fill = Freq))
+zp1 <- zp1 + geom_tile()
+zp1 <- zp1 + scale_fill_gradientn(colours = color_palette(50))
+zp1 <- zp1 + coord_equal()
+zp1 <- zp1 + theme_bw()
+zp1 <- zp1 + theme(axis.text.x = element_text(angle=90, vjust=1))
+print(zp1)
+```
+
+
+##Frequent secondary type by primary type
+The figures in the section shows the quantity of secondary types by primary type. For example the first plot can be interpreted as this, "there are 13 Bug/Flying Pokemon, 11 Bug/Poison and so on."
+
+###Bug dual types
+```{r, echo=FALSE}
+bug_dual_type<-types_table_complete[types_table_complete$dataset.Type.1 == "Bug", ]
+bug_dual_type <- bug_dual_type[bug_dual_type$dataset.Type.2 != bug_dual_type$dataset.Type.1,] #Remove rows where dataset.Type.1 and dataset.Type.2 are equal.
+print(bug_dual_type[order(-bug_dual_type$Freq),], row.names = FALSE)
+bug_dual_type$ordered_Levels <- reorder(bug_dual_type$dataset.Type.2, -bug_dual_type$Freq)
+ggplot(bug_dual_type,aes(x=(ordered_Levels), y = Freq)) + geom_bar(binwidth=1, stat="identity", fill="#A8B820") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 1)) + scale_y_continuous(breaks = seq(0,15)) + xlab("Secondary types") + ylab("Frequency of secondary types") + ggtitle("Frequency of secondary types on Bug type Pok?mon")
+```
+
+
+###Dark dual types
+```{r, echo=FALSE}
+dark_dual_type<-types_table_complete[types_table_complete$dataset.Type.1 == "Dark", ]
+dark_dual_type <- dark_dual_type[dark_dual_type$dataset.Type.2 != dark_dual_type$dataset.Type.1,]
+print(dark_dual_type[order(-dark_dual_type$Freq),], row.names = FALSE)
+dark_dual_type$ordered_Levels <- reorder(dark_dual_type$dataset.Type.2, -dark_dual_type$Freq)
+ggplot(dark_dual_type,aes(x=(ordered_Levels), y = Freq)) + geom_bar(binwidth=1, stat="identity", fill="#705848") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 1)) + xlab("Secondary types") + ylab("Frequency of secondary types") + ggtitle("Frequency of secondary types on Dark type Pok?mon")
+```
+
+###Dragon dual types
+```{r, echo=FALSE}
+dragon_dual_type<-types_table_complete[types_table_complete$dataset.Type.1 == "Dragon", ]
+dragon_dual_type <- dragon_dual_type[dragon_dual_type$dataset.Type.2 != dragon_dual_type$dataset.Type.1,]
+print(dragon_dual_type[order(-dragon_dual_type$Freq),], row.names = FALSE)
+dragon_dual_type$ordered_Levels <- reorder(dragon_dual_type$dataset.Type.2, -dragon_dual_type$Freq)
+ggplot(dragon_dual_type,aes(x=(ordered_Levels), y = Freq)) + geom_bar(binwidth=1, stat="identity", fill="#705898") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 1)) + xlab("Secondary types") + ylab("Frequency of secondary types") + ggtitle("Frequency of secondary types on Dragon type Pok?mon")
+```
+
+###Electric dual type
+```{r, echo=FALSE}
+electric_dual_type<-types_table_complete[types_table_complete$dataset.Type.1 == "Electric", ]
+electric_dual_type <- electric_dual_type[electric_dual_type$dataset.Type.2 != electric_dual_type$dataset.Type.1,]
+print(electric_dual_type[order(-electric_dual_type$Freq),], row.names = FALSE)
+electric_dual_type$ordered_Levels <- reorder(electric_dual_type$dataset.Type.2, -electric_dual_type$Freq)
+ggplot(electric_dual_type,aes(x=(ordered_Levels), y = Freq)) + geom_bar(binwidth=1, stat="identity", fill="#F8D030") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 1)) +  xlab("Secondary types") + ylab("Frequency of secondary types") + ggtitle("Frequency of secondary types on Electric type Pok?mon")
+```
+
+###Fairy dual type
+```{r, echo=FALSE}
+fairy_dual_type<-types_table_complete[types_table_complete$dataset.Type.1 == "Fairy", ]
+fairy_dual_type <- fairy_dual_type[fairy_dual_type$dataset.Type.2 != fairy_dual_type$dataset.Type.1,]
+print(fairy_dual_type[order(-fairy_dual_type$Freq),], row.names = FALSE)
+fairy_dual_type$ordered_Levels <- reorder(fairy_dual_type$dataset.Type.2, -fairy_dual_type$Freq)
+ggplot(fairy_dual_type,aes(x=(ordered_Levels), y = Freq)) + geom_bar(binwidth=1, stat="identity", fill="#EE99AC") +
+  scale_y_continuous(breaks=c(0,1,2)) + theme(axis.text.x = element_text(angle = 90, vjust = 1)) + xlab("Secondary types") + ylab("Frequency of secondary types") + ggtitle("Frequency of secondary types on Fairy type Pok?mon")
+```
+
+###Fighting dual type
+```{r, echo=FALSE}
+fighting_dual_type<-types_table_complete[types_table_complete$dataset.Type.1 == "Fighting", ]
+fighting_dual_type <- fighting_dual_type[fighting_dual_type$dataset.Type.2 != fighting_dual_type$dataset.Type.1,]
+print(fighting_dual_type[order(-fighting_dual_type$Freq),], row.names = FALSE)
+fighting_dual_type$ordered_Levels <- reorder(fighting_dual_type$dataset.Type.2, -fighting_dual_type$Freq)
+ggplot(fighting_dual_type,aes(x=(ordered_Levels), y = Freq)) + geom_bar(binwidth=1, stat="identity", fill="#C03028") +
+    scale_y_continuous(breaks=c(0,1,2)) + theme(axis.text.x = element_text(angle = 90, vjust = 1)) + xlab("Secondary types") + ylab("Frequency of secondary types") + ggtitle("Frequency of secondary types on Fighting type Pok?mon")
+```
+
+###Fire dual type
+```{r, echo=FALSE}
+fire_dual_type<-types_table_complete[types_table_complete$dataset.Type.1 == "Fire", ]
+fire_dual_type <- fire_dual_type[fire_dual_type$dataset.Type.2 != fire_dual_type$dataset.Type.1,]
+print(fire_dual_type[order(-fire_dual_type$Freq),], row.names = FALSE)
+fire_dual_type$ordered_Levels <- reorder(fire_dual_type$dataset.Type.2, -fire_dual_type$Freq)
+ggplot(fire_dual_type,aes(x=(ordered_Levels), y = Freq)) + geom_bar(binwidth=1, stat="identity", fill="#F08030") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 1)) + xlab("Secondary types") + ylab("Frequency of secondary types") + ggtitle("Frequency of secondary types on Fire type Pok?mon")
+```
+
+###Flying dual types
+```{r, echo=FALSE}
+flying_dual_type<-types_table_complete[types_table_complete$dataset.Type.1 == "Flying", ]
+flying_dual_type <- flying_dual_type[flying_dual_type$dataset.Type.2 != flying_dual_type$dataset.Type.1,]
+print(flying_dual_type[order(-flying_dual_type$Freq),], row.names = FALSE)
+flying_dual_type$ordered_Levels <- reorder(flying_dual_type$dataset.Type.2, -flying_dual_type$Freq)
+ggplot(flying_dual_type,aes(x=(ordered_Levels), y = Freq)) + geom_bar(binwidth=1, stat="identity", fill="#A890F0") +
+  scale_y_continuous(breaks = c(0,1,2)) + theme(axis.text.x = element_text(angle = 90, vjust = 1)) + xlab("Secondary types") + ylab("Frequency of secondary types") + ggtitle("Frequency of secondary types on Flying type Pok?mon")
+```
+
+###Ghost dual types
+```{r, echo=FALSE}
+ghost_dual_type<-types_table_complete[types_table_complete$dataset.Type.1 == "Ghost", ]
+ghost_dual_type <- ghost_dual_type[ghost_dual_type$dataset.Type.2 != ghost_dual_type$dataset.Type.1,]
+print(ghost_dual_type[order(-ghost_dual_type$Freq),], row.names = FALSE)
+ghost_dual_type$ordered_Levels <- reorder(ghost_dual_type$dataset.Type.2, -ghost_dual_type$Freq)
+ggplot(ghost_dual_type,aes(x=(ordered_Levels), y = Freq)) + geom_bar(binwidth=1, stat="identity", fill="#705898") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 1)) + xlab("Secondary types") + ylab("Frequency of secondary types") + ggtitle("Frequency of secondary types on Ghost type Pok?mon")
+```
+
+###Grass dual types
+```{r, echo=FALSE}
+grass_dual_type<-types_table_complete[types_table_complete$dataset.Type.1 == "Grass", ]
+grass_dual_type <- grass_dual_type[grass_dual_type$dataset.Type.2 != grass_dual_type$dataset.Type.1,]
+print(grass_dual_type[order(-grass_dual_type$Freq),], row.names = FALSE)
+grass_dual_type$ordered_Levels <- reorder(grass_dual_type$dataset.Type.2, -grass_dual_type$Freq)
+ggplot(grass_dual_type,aes(x=(ordered_Levels), y = Freq)) + geom_bar(binwidth=1, stat="identity", fill="#78C850") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 1)) + xlab("Secondary types") + ylab("Frequency of secondary types") + ggtitle("Frequency of secondary types on Grass type Pok?mon")
+```
+
+###Ground dual types
+```{r, echo=FALSE}
+ground_dual_type<-types_table_complete[types_table_complete$dataset.Type.1 == "Ground", ]
+ground_dual_type <- ground_dual_type[ground_dual_type$dataset.Type.2 != ground_dual_type$dataset.Type.1,]
+print(ground_dual_type[order(-ground_dual_type$Freq),], row.names = FALSE)
+ground_dual_type$ordered_Levels <- reorder(ground_dual_type$dataset.Type.2, -ground_dual_type$Freq)
+ggplot(ground_dual_type,aes(x=(ordered_Levels), y = Freq)) + geom_bar(binwidth=1, stat="identity", fill="#E0C068") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 1)) + xlab("Secondary types") + ylab("Frequency of secondary types") + ggtitle("Frequency of secondary types on Ground type Pok?mon")
+```
+
+###Ice dual types
+```{r, echo=FALSE}
+ice_dual_type<-types_table_complete[types_table_complete$dataset.Type.1 == "Ice", ]
+ice_dual_type <- ice_dual_type[ice_dual_type$dataset.Type.2 != ice_dual_type$dataset.Type.1,]
+print(ice_dual_type[order(-ice_dual_type$Freq),], row.names = FALSE)
+ice_dual_type$ordered_Levels <- reorder(ice_dual_type$dataset.Type.2, -ice_dual_type$Freq)
+ggplot(ice_dual_type,aes(x=(ordered_Levels), y = Freq)) + geom_bar(binwidth=1, stat="identity", fill="#98D8D8") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 1)) + xlab("Secondary types") + ylab("Frequency of secondary types") + ggtitle("Frequency of secondary types on Ice type Pok?mon")
+```
+
+###Normal dual types
+```{r, echo=FALSE}
+normal_dual_type<-types_table_complete[types_table_complete$dataset.Type.1 == "Normal", ]
+normal_dual_type <- normal_dual_type[normal_dual_type$dataset.Type.2 != normal_dual_type$dataset.Type.1,]
+print(normal_dual_type[order(-normal_dual_type$Freq),], row.names = FALSE)
+normal_dual_type$ordered_Levels <- reorder(normal_dual_type$dataset.Type.2, -normal_dual_type$Freq)
+ggplot(normal_dual_type,aes(x=(ordered_Levels), y = Freq)) + geom_bar(binwidth=1, stat="identity", fill="#A8A878") + theme(axis.text.x = element_text(angle = 90, vjust = 1)) + xlab("Secondary types") + ylab("Frequency of secondary types") + ggtitle("Frequency of secondary types on Normal type Pok?mon")
+```
+
+###Poison dual types
+```{r, echo=FALSE}
+poison_dual_type<-types_table_complete[types_table_complete$dataset.Type.1 == "Poison", ]
+poison_dual_type <- poison_dual_type[poison_dual_type$dataset.Type.2 != poison_dual_type$dataset.Type.1,]
+print(poison_dual_type[order(-poison_dual_type$Freq),], row.names = FALSE)
+poison_dual_type$ordered_Levels <- reorder(poison_dual_type$dataset.Type.2, -poison_dual_type$Freq)
+ggplot(poison_dual_type,aes(x=(ordered_Levels), y = Freq)) + geom_bar(binwidth=1, stat="identity", fill="#A040A0") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 1)) + xlab("Secondary types") + ylab("Frequency of secondary types") + ggtitle("Frequency of secondary types on Poison type Pok?mon")
+```
+
+###Psychic dual type
+```{r, echo=FALSE}
+psychic_dual_type<-types_table_complete[types_table_complete$dataset.Type.1 == "Psychic", ]
+psychic_dual_type <- psychic_dual_type[psychic_dual_type$dataset.Type.2 != psychic_dual_type$dataset.Type.1,]
+print(psychic_dual_type[order(-psychic_dual_type$Freq),], row.names = FALSE)
+psychic_dual_type$ordered_Levels <- reorder(psychic_dual_type$dataset.Type.2, -psychic_dual_type$Freq)
+ggplot(psychic_dual_type,aes(x=(ordered_Levels), y = Freq)) + geom_bar(binwidth=1, stat="identity", fill="#F85888") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 1)) + xlab("Secondary types") + ylab("Frequency of secondary types") + ggtitle("Frequency of secondary types on Psychic type Pok?mon")
+```
+
+###Rock dual type
+```{r, echo=FALSE}
+rock_dual_type<-types_table_complete[types_table_complete$dataset.Type.1 == "Rock", ]
+rock_dual_type <- rock_dual_type[rock_dual_type$dataset.Type.2 != rock_dual_type$dataset.Type.1,]
+print(rock_dual_type[order(-rock_dual_type$Freq),], row.names = FALSE)
+rock_dual_type$ordered_Levels <- reorder(rock_dual_type$dataset.Type.2, -rock_dual_type$Freq)
+ggplot(rock_dual_type,aes(x=(ordered_Levels), y = Freq)) + geom_bar(binwidth=1, stat="identity", fill="#B8A038") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 1)) + xlab("Secondary types") + ylab("Frequency of secondary types") + ggtitle("Frequency of secondary types on Rock type Pok?mon")
+```
+
+###Steel dual type
+```{r, echo=FALSE}
+steel_dual_type<-types_table_complete[types_table_complete$dataset.Type.1 == "Steel", ]
+print(steel_dual_type[order(-steel_dual_type$Freq),], row.names = FALSE)
+steel_dual_type <- steel_dual_type[steel_dual_type$dataset.Type.2 != steel_dual_type$dataset.Type.1,]
+steel_dual_type$ordered_Levels <- reorder(steel_dual_type$dataset.Type.2, -steel_dual_type$Freq)
+ggplot(steel_dual_type,aes(x=(ordered_Levels), y = Freq)) + geom_bar(binwidth=1, stat="identity", fill="#B8B8D0") +
+  theme(axis.text.x = element_text(angle = 90, vjust = 1)) + xlab("Secondary types") + ylab("Frequency of secondary types") + ggtitle("Frequency of secondary types on Steel type Pok?mon")
+```
+
+###Water dual type
+```{r, echo=FALSE}
+water_dual_type<-types_table_complete[types_table_complete$dataset.Type.1 == "Water", ]
+print(water_dual_type[order(-water_dual_type$Freq),], row.names = FALSE)
+water_dual_type <- water_dual_type[water_dual_type$dataset.Type.2 != water_dual_type$dataset.Type.1,]
+water_dual_type$ordered_Levels <- reorder(water_dual_type$dataset.Type.2, -water_dual_type$Freq)
+ggplot(water_dual_type,aes(x=(ordered_Levels), y = Freq)) + geom_bar(binwidth=1, stat="identity", fill="#6890F0") + 
+  scale_y_continuous(breaks = c(0,2,4,6,8,10)) + theme(axis.text.x = element_text(angle = 90, vjust = 1)) + xlab("Secondary types") + ylab("Frequency of secondary types") + ggtitle("Frequency of secondary types on Water type Pok?mon")
+```
+
+##Frequency of secondary types
+This table shows the frequency of secondary types.
+For example, there are 3 Pok?mon with Bug as a secondary type (Anorith, Armaldo and Skorupi).
+```{r, echo=FALSE}
+types_df <- as.data.frame.matrix(types_matrix)
+diag(types_df) <- 0
+colSums(types_df)
+```
+
+The most common secondary type is Flying with 87 and the rarest is Bug with just 3.
+
+##Secondary types by region.
+In this section we will summarize the dual-types per region (Kanto, Johto, Hoenn, Sinnoh, Unova and Kalos).
+The following tables shows the top five dual-types per region.
+```{r, echo=FALSE}
+#Top 10 per region
+region <- vector(length=718)
+region[1:151] <- "Kanto"
+region[152:251] <- "Johto"
+region[252:386] <- "Hoenn"
+region[387:493] <- "Sinnoh"
+region[494:649] <- "Unova"
+region[650:718] <- "Kalos"
+types$region <- region #Add the column to the types matrix.
+types <- types[complete.cases(types),] #Remove NA
+diag(types_matrix) <- -1
+types_table_complete <- as.data.frame(table(types))
+types_table_complete$Freq <- as.numeric(types_table_complete$Freq)
+types_table_frequency_0 <- types_table_complete[which(types_table_complete$Freq == 0),] #Todos los que tienen frequency de 0.
+types_table <- types_table_complete[which(types_table_complete$Freq != 0),] #Todos los que tienen frequency > 0
+types_table <- types_table[order(-types_table$Freq),]
+```
+
+###Kanto region
+```{r, echo=FALSE}
+#Kanto
+kanto_dual_types <- types_table[which(types_table$region == "Kanto"),]
+print(head(kanto_dual_types), row.names = FALSE)
+```
+
+###Johto region
+```{r, echo=FALSE}
+#Johto
+johto_dual_types <- types_table[which(types_table$region == "Johto"),]
+print(head(johto_dual_types), row.names = FALSE)
+```
+
+###Hoenn region
+```{r, echo=FALSE}
+#Hoenn
+hoenn_dual_types <- types_table[which(types_table$region == "Hoenn"),]
+print(head(hoenn_dual_types), row.names = FALSE)
+```
+
+###Sinnoh region
+```{r, echo=FALSE}
+#Sinnoh
+sinnoh_dual_types <- types_table[which(types_table$region == "Sinnoh"),]
+print(head(sinnoh_dual_types), row.names = FALSE)
+```
+
+###Unova region
+```{r, echo=FALSE}
+#Unova
+unova_dual_types <- types_table[which(types_table$region == "Unova"),]
+print(head(unova_dual_types), row.names = FALSE)
+```
+
+###Kalos region
+```{r, echo=FALSE}
+kalos_dual_types <- types_table[which(types_table$region == "Kalos"),]
+print(head(kalos_dual_types), row.names = FALSE)
+```
+
+```{r, echo=FALSE}
+a <- c(sum(kanto_dual_types$Freq), "Kanto")
+dual_types_freq_by_region <- data.frame(Region = character(), Frequency = numeric(), stringsAsFactors = FALSE)
+dual_types_freq_by_region[1,] <- c("Kanto", as.numeric(sum(kanto_dual_types$Freq)))
+dual_types_freq_by_region[2,] <- c("Johto", as.numeric(sum(johto_dual_types$Freq)))
+dual_types_freq_by_region[3,] <- c("Hoenn", as.numeric(sum(hoenn_dual_types$Freq)))
+dual_types_freq_by_region[4,] <- c("Sinnoh", as.numeric(sum(sinnoh_dual_types$Freq)))
+dual_types_freq_by_region[5,] <- c("Unova", as.numeric(sum(unova_dual_types$Freq)))
+dual_types_freq_by_region[6,] <- c("Kalos", as.numeric(sum(kalos_dual_types$Freq)))
+dual_types_freq_by_region$ordered_levels <- reorder(dual_types_freq_by_region$Region, -as.numeric(dual_types_freq_by_region$Frequency))
+ggplot(dual_types_freq_by_region,aes(x=ordered_levels, y = Frequency)) + geom_bar(binwidth=1, stat="identity", fill="darkorange") + xlab("Region") + ggtitle("Frequency of dual types Pokemon across regions") 
+```
+
+The previous figure shows that the Unova region has the most dual-type Pok?mon and Kalos has the least.
+
+The next and last figure of this section shows the frequency of dual-type Pok?mon per each unique type splitted by generation. The x axis shows the different types, the y axis the frequency and each colored line represents a region. For example, there are 15 Bug Pok?mon with a secondary type originally from Unova.
+
+```{r, echo=FALSE}
+#Plots of primary type with most secondary types across generations
+#table(unova_dual_types)
+#sum(unova_dual_types[which(unova_dual_types$dataset.Type.1 == "Bug"),]$Freq) #This means there are 15 Bug Pokemon from Unova region that have a dual type.
+types_per_region <- as.data.frame(table(types$dataset.Type.1, types$region))
+colnames(types_per_region) <- c("Type", "Region", "Frequency")
+ggplot(types_per_region, aes(x=Type, y=Frequency, group=Region)) + geom_line(aes(colour=Region), size = 1) + geom_point(size = 3) + scale_colour_brewer(palette="Dark2") +
+  scale_y_continuous(breaks = c(0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15)) + theme(axis.text.x = element_text(angle = 90, vjust = 1)) + ggtitle("Frequency of Pokemon with dual-types per primary type across generations") + theme(plot.title = element_text(size = rel(0.9)))
+```
+
+##Decision tree
+This section is in some way different than the previous ones. Here we introduced a decision tree, a prediction model that uses a flow-chart structure to reach certain conclusions about a dataset based on previous observations. This simple decision tree was made to check if there is any relation between dua-types Pok?mon and their region of origin (Kanto, Johto, Hoenn, Sinnoh, Unova and Kalos). For example, are most Normal-Flying Pok?mon from the Kanto region? 
+
+What we did in this decision tree model was to split the dataset into a training set and a test set.
+The training set was used to teach the model about the dual-types Pok?mon and their original region and the test set for detecting how well our model can "guess" the original region of a certain dual-type Pok?mon based on what it learned.
+
+Note that this model is not optimized at all. The purpose of doing this is just to see if there is any correlation at all.
+
+```{r, echo=FALSE}
+require(tree)
+set.seed(50)
+types$region <- as.factor(types$region)
+train <- sample(1:nrow(types), 200) #147 for test
+#train <- seq(1,200)
+tree.types <- tree(region ~ . , types, subset = train) #We want to obtain classify the region.
+summary(tree.types)
+tree.pred=predict(tree.types,types[-train,],type="class") #We want to predict the labels, or classes
+with(types[-train,],table(tree.pred,region))
+```
+
+If we count the correct predictions (the numbers in the diagonal) and using length of the test set (147) we get a correct prediction percentage of `r (sum(diag(with(types[-train,],table(tree.pred,region))))/sum(with(types[-train,],table(tree.pred,region)))) * 100` which means that 1 out of 3 dual types Pok?mon gets a correct prediction of its region based on its dual-type. A 33% correct rate does not say much about this model; as seen from the table there is some connection in Kanto dual type Pok?mon and Unova but generally speaking my interpretation is that there is not a constant connection between a dual-type Pok?mon and its origin region.
+
+
+The next figure is a representation of the tree. Each internal node represents a test on the attribute, which in this case is the primary type and the secondary type of the Pok?mon. For example, at the first internal node we have all the secondary types except for Electric, Fire, Poison and Steel. At this node we ask, is our Pok?mon secondary type any of these? If the answer if yes, we take the left route otherwise the right now. Suppose the answer to this question is no, so we take the right branch. At this new branch we ask, is our Pok?mon secondary type either Electric, Fire or Steel? If the answer is yes we take the left branch and performed another test, otherwise we take the right split and the Pok?mon is categorized as Kanto. In this exact case, the only remaining secondary type not seen in the branches is Poison, thus according to this tree, a Pok?mon that has Poison as a secondary type comes from the Kanto region. In some sense this is correct because out of all the 31 Pok?mon that has secondary Poison type, 19 comes from the Kanto region (61.3%), 3 from Johto (9.7%), 2 from Hoenn (6.5%), 2 from Sinnoh (6.5%) and 5 from Unova (16%).
+```{r, echo=FALSE, fig.width=10, fig.height=7}
+plot(tree.types)
+text(tree.types, cex = 0.6, pretty = 1)
+```
+
+##Notes and disclaimers
+* If you spot a typo, or any error in the analysis, feel free to notify me.
+* This work is licensed under a [Creative Commons Attribution-NonCommercial 4.0 International License](http://creativecommons.org/licenses/by-nc/4.0/). In other words, feel free to use it, share it, edit it for non-commercial purposes and please, give credit.
+* ? 2015 Pok?mon. ? 1995-2015 Nintendo/Creatures Inc./GAME FREAK inc. Pok?mon, Pok?mon character names are trademarks of Nintendo.
