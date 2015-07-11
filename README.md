@@ -5,6 +5,8 @@ In this work we will take a look at dual-type Pok?mon. Unlike the games, we will
 
 The Pok?mon included in this study are the ones currently available in the National Pokedex, starting with Bulbasaur and ending with Zygarde; a total of 718 Pok?mon. Also, Mega Pok?mon and alternate forms of Pok?mon like Rotom forms, Therian forms are not included.
 
-The .Rmd is a Markdown file done in R that contains the code of the analysis plus the documentation. To view the code, open the Rmd file in raw mode.
+
+##About the project
+This analysis was done in R. The .Rmd is a Markdown file done in R that contains the code of the analysis plus the documentation. To view the code, open the Rmd file in raw mode or execute it in R.
 
 The analysis is also available at this page: http://rpubs.com/juande/pokemon_dual_type_analysis
