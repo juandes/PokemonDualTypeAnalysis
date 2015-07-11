@@ -9,4 +9,8 @@ The Pok?mon included in this study are the ones currently available in the Natio
 ##About the project
 This analysis was done in R. The .Rmd is a Markdown file done in R that contains the code of the analysis plus the documentation. To view the code, open the Rmd file in raw mode or execute it in R.
 
+The file pokemontypes.txt is the dataset used in the analysis. It contains three columns, the number of the Pokemon and it types.
+
+pokemontypesdf.RData contains the same data in an R data format.
+
 The analysis is also available at this page: http://rpubs.com/juande/pokemon_dual_type_analysis
