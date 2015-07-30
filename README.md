@@ -13,4 +13,4 @@ The Pok?mon included in this study are the ones currently available in the Natio
 
 This repository contains the Markdown file that holds the analysis plus the R code, an R script with just the code, the original dataset used (in txt) and the HTML version of the report.
 
-The analysis is also available [here](http://juandes.github.io/PokemonDualTypeAnalysis/docs/dual_types_analysis) and [here](http://rpubs.com/juande/pokemon_dual_type_analysis).
+The analysis can be found [here](http://juandes.github.io/PokemonDualTypeAnalysis/docs/dual_types_analysis).
