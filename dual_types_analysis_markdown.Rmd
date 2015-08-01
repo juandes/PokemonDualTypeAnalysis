@@ -1,5 +1,5 @@
 ---
-title: "Pokemon dual types analysis"
+title: "Pokemon dual type analysis"
 author: "Juan De Dios Santos, @jdiossantos"
 output: html_document
 ---
@@ -26,7 +26,7 @@ a dual type Pokémon, in other words, a Flying/Dragon Pokémon is treated in the
 same way a Dragon/Flying Pokémon is treated.
 
 In this work we will take a look at dual type Pokémon. The analysis is mostly an
-exploratory data analysis where we studying topics such as most frequent secondary
+exploratory data analysis where we will study topics such as most frequent secondary
 type by primary type, the most common secondary types by region and in the last
 part, we will introduce a prediction model to see if there is any relation between
 dual types Pokémon and their region of origin. 
