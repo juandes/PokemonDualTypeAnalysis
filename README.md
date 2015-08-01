@@ -4,7 +4,7 @@
 
 In the world of Pokémon there are 18 types that are properties of the Pokémon and their moves. A Pokémon may have one or two types (dual type), meaning that there are 324 posible combinations, 18 single type Pokémon and 306 dual types Pokémon. However in the games, there are no differences between the order of the types in a dual type Pokémon, in other words, a Flying/Dragon Pokémon is treated in the same way a Dragon/Flying Pokémon is treated.
 
-In this work we will take a look at dual type Pokémon. The analysis is mostly an exploratory data analysis where we studying topics such as most frequent secondary type by primary type, the most common secondary types by region and in the last part, we will introduce a prediction model to see if there is any relation between dual types Pokémon and their region of origin.
+In this work we will take a look at dual type Pokémon. The analysis is mostly an exploratory data analysis where we will study topics such as most frequent secondary type by primary type, the most common secondary types by region and in the last part, we will introduce a prediction model to see if there is any relation between dual types Pokémon and their region of origin.
 
 Unlike the games, we will consider the order of the types of a dual type Pokémon using the way it is documented in the Pokedex. For example, we will treat a Flying/Dragon Pokémon such as Noivern and Dragon/Flying Pokémon like Altaria as having two different types.
 
