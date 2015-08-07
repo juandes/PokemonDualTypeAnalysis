@@ -12,9 +12,12 @@ The Pokémon included in this study are the ones currently available in the Nati
 
 This analysis was done using R.
 
+Link to the analysis: [Pokemon dual type analysis](http://juandes.github.io/PokemonDualTypeAnalysis/docs/dual_types_analysis)
+
+GitHub page about the project: [Pokemon dual type analysis - home page](http://juandes.github.io/PokemonDualTypeAnalysis/)
+
 
 ## Project
 
 This repository contains the Markdown file that holds the analysis plus the R code, an R script with just the code, the original dataset used (in txt) and the HTML version of the report.
 
-The analysis can be found [here](http://juandes.github.io/PokemonDualTypeAnalysis/docs/dual_types_analysis).
